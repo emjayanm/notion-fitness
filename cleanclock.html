@@ -1,0 +1,72 @@
+<!-- Simple Clock Widget by emjayanm.com -->
+<div id="clock-widget" style="background:#ffffff; color:#000; padding:20px; font-family:sans-serif; font-size:12pt; text-align:center; border-radius:12px; max-width:300px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+  <h2 style="font-size:16pt; margin-bottom:10px;">🕰️ Local Time</h2>
+
+  <p id="time-display" style="font-size:24pt; margin:10px 0;"></p>
+
+  <div style="margin-bottom:10px;">
+    <label for="timezone">Select Timezone:</label><br>
+    <select id="timezone" style="margin-top:6px; padding:4px;"></select>
+  </div>
+
+  <div>
+    <label for="format">Time Format:</label><br>
+    <select id="format" style="margin-top:6px; padding:4px;">
+      <option value="12">12-hour (AM/PM)</option>
+      <option value="24">24-hour</option>
+    </select>
+  </div>
+</div>
+
+<script>
+  const timeEl = document.getElementById("time-display");
+  const tzSelect = document.getElementById("timezone");
+  const formatSelect = document.getElementById("format");
+
+  const zones = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [
+    "UTC", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+    "Europe/London", "Europe/Paris", "Asia/Tokyo", "Asia/Dubai", "Australia/Sydney"
+  ];
+
+  zones.forEach(zone => {
+    const opt = document.createElement("option");
+    opt.value = zone;
+    opt.textContent = zone.replace("_", " ");
+    tzSelect.appendChild(opt);
+  });
+
+  // Load saved settings
+  let selectedZone = localStorage.getItem("userTimezone") || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let hourFormat = localStorage.getItem("hourFormat") || "12";
+
+  tzSelect.value = selectedZone;
+  formatSelect.value = hourFormat;
+
+  tzSelect.addEventListener("change", () => {
+    selectedZone = tzSelect.value;
+    localStorage.setItem("userTimezone", selectedZone);
+  });
+
+  formatSelect.addEventListener("change", () => {
+    hourFormat = formatSelect.value;
+    localStorage.setItem("hourFormat", hourFormat);
+  });
+
+  function updateClock() {
+    const now = new Date();
+    try {
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: selectedZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: hourFormat === "12"
+      });
+      timeEl.textContent = formatter.format(now);
+    } catch {
+      timeEl.textContent = "Invalid Timezone";
+    }
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
