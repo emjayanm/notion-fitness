@@ -1,90 +1,128 @@
 <!-- ⭐ Gold Star Workout Streak Widget by Sarah at emjayanm.com-->
-<div style="background:#ffffff; color:#000; padding:20px; font-family:Arial, sans-serif; font-size:12pt; text-align:center; border-radius:12px; max-width:420px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-  <h2 style="font-size:16pt; margin-bottom:10px;">⭐ Weekly Workout Streak</h2>
+<div id="widget" style="background:#ffffff; color:#000; padding:20px; font-family:sans-serif; font-size:12pt; text-align:center; border-radius:12px; max-width:420px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+  <h2 style="font-size:16pt; margin-bottom:10px;">⭐ Weekly Workout Tracker ⭐</h2>
 
-  <label for="duration">Set workout duration:</label><br>
-  <select id="duration" style="margin-bottom:10px;">
-    <option>15 minutes</option>
-    <option selected>30 minutes</option>
-    <option>45 minutes</option>
-    <option>60 minutes</option>
-  </select><br>
+  <div id="setup">
+    <label for="duration">Choose workout duration:</label><br>
+    <select id="duration" style="margin:8px 0;">
+      <option>15 minutes</option>
+      <option selected>30 minutes</option>
+      <option>45 minutes</option>
+      <option>60 minutes</option>
+    </select><br>
 
-  <label for="goal">Set weekly goal:</label><br>
-  <select id="goal" style="margin-bottom:10px;">
-    <option>2 days per week</option>
-    <option>3 days per week</option>
-    <option>4 days per week</option>
-    <option selected>5 days per week</option>
-    <option>6 days per week</option>
-  </select>
+    <label for="goal">Choose days per week:</label><br>
+    <select id="goal" style="margin-bottom:10px;">
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+      <option selected>5</option>
+      <option>6</option>
+    </select><br>
 
-  <div id="stars" style="font-size:24pt; margin:10px 0;"></div>
-  <button onclick="startWorkout()" style="padding:8px 16px; margin:10px 0;">Start Workout</button>
-  <p id="timer" style="margin:6px 0;"></p>
-  <p id="status"></p>
-  <p id="streakCount" style="margin-top:10px;"></p>
-  <p id="resetCountdown"></p>
+    <button onclick="saveGoal()" style="padding:8px 16px; margin-top:10px;">Set Goal</button>
+  </div>
+
+  <div id="tracker" style="display:none;">
+    <p id="goalSummary"></p>
+    <div id="stars" style="font-size:24pt; margin:10px 0;"></div>
+    <p id="status" style="margin:6px 0;"></p>
+    <p id="streakMessage" style="margin:6px 0;"></p>
+    <button onclick="manualReset()" style="margin:10px 0; padding:6px 14px;">🔁 Reset Progress</button>
+  </div>
+
+  <p id="countdown" style="margin-top:10px;"></p>
 </div>
 
 <script>
+  const durationEl = document.getElementById("duration");
+  const goalEl = document.getElementById("goal");
+  const setup = document.getElementById("setup");
+  const tracker = document.getElementById("tracker");
   const starsContainer = document.getElementById("stars");
-  const timerEl = document.getElementById("timer");
   const status = document.getElementById("status");
-  const streakDisplay = document.getElementById("streakCount");
-  const resetEl = document.getElementById("resetCountdown");
+  const goalSummary = document.getElementById("goalSummary");
+  const countdown = document.getElementById("countdown");
+  const streakMessage = document.getElementById("streakMessage");
 
-  let streak = parseInt(localStorage.getItem("weeklyStreak")) || 0;
-  let stars = parseInt(localStorage.getItem("weeklyStars")) || 0;
-  let streakWins = parseInt(localStorage.getItem("streakWins")) || 0;
-  let resetTime = parseInt(localStorage.getItem("resetTime"));
+  let starGoal = parseInt(localStorage.getItem("starGoal")) || null;
+  let streak = parseInt(localStorage.getItem("streak")) || 0;
+  let stars = JSON.parse(localStorage.getItem("stars")) || [];
+  let resetTime = parseInt(localStorage.getItem("resetTime")) || getNextMonday();
 
-  const confetti = () => {
-    const confetti = document.createElement("div");
-    confetti.textContent = "🎉";
-    confetti.style.position = "fixed";
-    confetti.style.top = "50%";
-    confetti.style.left = "50%";
-    confetti.style.fontSize = "48px";
-    document.body.appendChild(confetti);
-    setTimeout(() => confetti.remove(), 2000);
-  };
+  function saveGoal() {
+    starGoal = parseInt(goalEl.value);
+    stars = Array(starGoal).fill(false);
+    localStorage.setItem("starGoal", starGoal);
+    localStorage.setItem("stars", JSON.stringify(stars));
+    localStorage.setItem("resetTime", resetTime);
+    renderWidget();
+  }
 
-  function renderStars() {
+  function renderWidget() {
+    if (!starGoal) return;
+    setup.style.display = "none";
+    tracker.style.display = "block";
+    goalSummary.textContent = `🎯 Goal: ${starGoal} workouts of ${durationEl.value} this week`;
+
     starsContainer.innerHTML = "";
-    for (let i = 0; i < 6; i++) {
+    stars.forEach((filled, index) => {
       const star = document.createElement("span");
-      star.textContent = i < stars ? "⭐" : "☆";
+      star.textContent = filled ? "⭐" : "☆";
+      star.style.cursor = filled ? "default" : "pointer";
+      star.onclick = () => {
+        if (!filled) {
+          stars[index] = true;
+          localStorage.setItem("stars", JSON.stringify(stars));
+          renderWidget();
+          checkCompletion();
+        }
+      };
       starsContainer.appendChild(star);
-    }
-  }
+    });
 
-  function updateStreakDisplay() {
-    if (streakWins >= 10) {
-      streakDisplay.textContent = "🏅 10-week consistency master!";
-    } else if (streakWins >= 5) {
-      streakDisplay.textContent = "🏆 5-week streak! You're a champ!";
-    } else if (streakWins >= 3) {
-      streakDisplay.textContent = "🥉 3-week streak! Keep it going!";
+    const completed = stars.filter(Boolean).length;
+    const remaining = starGoal - completed;
+    status.textContent = completed >= starGoal
+      ? "🎉 Goal Complete! Amazing job!"
+      : `💪 ${remaining} more to go!`;
+
+    // Streak message
+    if (completed >= starGoal) {
+      streak++;
+      localStorage.setItem("streak", streak);
+      if (streak >= 10) {
+        streakMessage.textContent = "🏅 10-week master streak!";
+      } else if (streak >= 5) {
+        streakMessage.textContent = "🏆 5-week streak — you’re on fire!";
+      } else if (streak >= 3) {
+        streakMessage.textContent = "🥉 3-week streak — keep going!";
+      } else {
+        streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
+      }
+
+      // Confetti 🎉
+      const confetti = document.createElement("div");
+      confetti.textContent = "🎉";
+      confetti.style.position = "fixed";
+      confetti.style.top = "50%";
+      confetti.style.left = "50%";
+      confetti.style.fontSize = "48px";
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2000);
     } else {
-      streakDisplay.textContent = "";
+      streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
     }
   }
 
-  function updateCountdown() {
-    const now = new Date().getTime();
-    const distance = resetTime - now;
-    if (distance <= 0) {
-      stars = 0;
-      localStorage.setItem("weeklyStars", stars);
-      resetTime = getNextMonday();
-      localStorage.setItem("resetTime", resetTime);
-      renderStars();
-    }
-    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    resetEl.textContent = `🔁 Resets in ${d} days, ${h} hours, ${m} minutes`;
+  function manualReset() {
+    starGoal = null;
+    stars = [];
+    localStorage.removeItem("starGoal");
+    localStorage.removeItem("stars");
+    setup.style.display = "block";
+    tracker.style.display = "none";
+    renderCountdown();
   }
 
   function getNextMonday() {
@@ -96,52 +134,31 @@
     return now.getTime();
   }
 
-  function startWorkout() {
-    const durationSelect = document.getElementById("duration").value;
-    const goalSelect = document.getElementById("goal").value;
-    const duration = parseInt(durationSelect.split(" ")[0]);
-    const goal = parseInt(goalSelect.split(" ")[0]);
-
-    let seconds = duration * 60;
-    timerEl.textContent = `⏳ ${duration} min workout started...`;
-    const interval = setInterval(() => {
-      seconds--;
-      const min = Math.floor(seconds / 60);
-      const sec = seconds % 60;
-      timerEl.textContent = `⏳ Time left: ${min}m ${sec}s`;
-      if (seconds <= 0) {
-        clearInterval(interval);
-        stars++;
-        localStorage.setItem("weeklyStars", stars);
-        renderStars();
-        timerEl.textContent = "✅ Workout complete!";
-        const bell = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-        bell.play();
-
-        if (stars >= goal) {
-          status.textContent = `🎉 Goal met: ${goal} workouts this week!`;
-          confetti();
-          streak++;
-          streakWins++;
-          localStorage.setItem("weeklyStreak", streak);
-          localStorage.setItem("streakWins", streakWins);
-        } else {
-          status.textContent = `💪 ${goal - stars} workouts to go!`;
-        }
-
-        updateStreakDisplay();
-      }
-    }, 1000);
+  function checkReset() {
+    const now = new Date().getTime();
+    if (now >= resetTime) {
+      // Reset only star progress
+      stars = Array(starGoal || 0).fill(false);
+      localStorage.setItem("stars", JSON.stringify(stars));
+      resetTime = getNextMonday();
+      localStorage.setItem("resetTime", resetTime);
+      renderWidget();
+    }
   }
 
-  // Initial setup
-  if (!resetTime) {
-    resetTime = getNextMonday();
-    localStorage.setItem("resetTime", resetTime);
+  function renderCountdown() {
+    const now = new Date().getTime();
+    const distance = resetTime - now;
+    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    countdown.textContent = `⏳ Resets in ${d}d ${h}h ${m}m`;
   }
 
-  renderStars();
-  updateCountdown();
-  updateStreakDisplay();
-  setInterval(updateCountdown, 60000); // update countdown every minute
+  // Init
+  checkReset();
+  renderWidget();
+  renderCountdown();
+  setInterval(renderCountdown, 60000);
 </script>
+
