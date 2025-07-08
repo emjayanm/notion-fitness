@@ -1,0 +1,162 @@
+<!-- 
+Created by Sarah at emjayanm.com 
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reflection Prompt</title>
+  <style>
+    body {
+      font-variant-caps: all-petite-caps;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    .widget {
+      padding: 5px 5px;
+      color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      max-width: 95%;
+      margin: auto;
+      border: 3px solid #000000;
+      border-radius: 5px;
+      box-shadow: 2px 2px 1px 0px #000000;
+      font-family: monospace;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .prompt {
+      font-size: 1.2em;
+      line-height: 1.6;
+      opacity: 0;
+      transition: opacity 1.5s ease-in;
+    }
+
+    .countdown {
+      font-size: 1em;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget">
+    <div class="title">End of Workout Week Journal Prompt</div>
+    <div id="tarotjournalPrompt" class="prompt"></div>
+    <div id="countdown" class="countdown"></div>
+  </div>
+
+  <script>
+    const prompts = [
+      "What food choices supported my energy best?",
+      "Where did I give myself grace?",
+      "What moment made me feel strong?",
+      "What does my body need more of right now?",
+      "Did I follow through on my goals — and if not, what got in the way?",
+      "What does 'progress' mean to me this week?",
+      "What helped me stay consistent?",
+      "What’s one thing I would change if I repeated this week?",
+      "Did I push past discomfort or avoid it?",
+      "What did I ignore this week that mattered?",
+      "How did I fuel my body this week?",
+      "What small moment of discipline am I proud of?",
+      "What triggered my resistance or excuses?",
+      "What kind of movement do I want to try next week?",
+      "What’s something I’d tell my past self about this week?",
+      "How did I balance rest and effort?",
+      "What body signals did I tune into?",
+      "How did my body feel during workouts this week? What do I need to adjust next week?",
+      "What did I learn about my limits this week?",
+      "Did I listen to my body when it needed rest?",
+      "How did I feel after most workouts — mentally and emotionally?",
+      "Where did I surprise myself this week?",
+      "How did I sleep, and how did that affect my movement?",
+      "What routines supported me this week?",
+      "What intention do I want to set for the upcoming week?",
+      "What part of my body needs more love or attention right now?",
+      "What’s one habit I want to build on next week?",
+      "How did I care for myself after a hard workout or day?",
+      "What motivated me most this week?",
+      "Did I show up for myself even when I didn’t feel like it?",
+      "What kind of movement felt like joy this week?",
+      "How did I speak to myself this week — kindly or critically?",
+      "What was my biggest physical win this week?",
+      "How did I care for my mental health alongside physical goals?",
+      "What’s something I did that was brave?",
+      "What’s one non-physical benefit I noticed from staying active?",
+      "What’s a small shift I can try next week?",
+      "Where did I choose growth over comfort?",
+      "What was my body craving this week — and did I honor it?",
+      "What was my favorite workout or moment this week?",
+      "What do I want more of in my health routine next week?",
+      "What kind of movement felt best for me this week?",
+      "What was harder than expected, and why?",
+      "How did my workouts support my mood this week?",
+      "What form of recovery did I prioritize?",
+      "What intention do I want to carry into next week?",
+      "What’s one mindset I want to carry forward?",
+      "What’s something I want to celebrate?",
+      "Did I hydrate well?",
+      "What’s one goal I’m inching toward, even if progress feels slow?",
+      "What does my body need to hear right now?",
+      "What did I track this week that helped?",
+      "What’s something I did differently this week — and how did it feel?",
+      "If my body could talk, what would it say about this week?",
+      "Was my energy consistent or did it fluctuate?",
+      "What’s one pattern I noticed about my body or habits?",
+      "What does it mean to show up for myself this week?",
+      "What would it look like to be proud of myself right now?",
+      "How did I manage stress and did it show up in my body? If yes, how?",
+      "Where do I feel momentum starting to build?"
+    ];
+
+    function getISOWeekNumber(date) {
+      const tempDate = new Date(date.getTime());
+      tempDate.setHours(0, 0, 0, 0);
+      tempDate.setDate(tempDate.getDate() + 3 - (tempDate.getDay() + 6) % 7);
+      const week1 = new Date(tempDate.getFullYear(), 0, 4);
+      return 1 + Math.round(((tempDate - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    }
+
+    const today = new Date();
+    const weekNumber = getISOWeekNumber(today);
+    const promptIndex = (weekNumber - 1) % prompts.length;
+    const promptElement = document.getElementById("tarotjournalPrompt");
+
+    promptElement.textContent = prompts[promptIndex];
+    setTimeout(() => {
+      promptElement.style.opacity = 1;
+    }, 100);
+
+    function updateCountdown() {
+      const now = new Date();
+      const daysUntilNextSunday = (7 - now.getDay()) % 7 || 7;
+      const nextSunday = new Date(now);
+      nextSunday.setDate(now.getDate() + daysUntilNextSunday);
+      nextSunday.setHours(0, 0, 0, 0);
+
+      const diff = nextSunday - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+
+      document.getElementById("countdown").textContent =
+        `Next prompt in: ${days} day${days !== 1 ? "s" : ""}, ${hours} hour${hours !== 1 ? "s" : ""}, ${minutes} minute${minutes !== 1 ? "s" : ""}`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 60000); // updates every minute
+  </script>
+
+</body>
+</html>
