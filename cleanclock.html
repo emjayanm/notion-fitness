@@ -1,72 +1,171 @@
 <!-- Simple Clock Widget by emjayanm.com -->
-<div id="clock-widget" style="background:#ffffff; color:#000; padding:20px; font-family:Georgia; font-size:12pt; text-align:center; border-radius:12px; max-width:300px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-  <h2 style="font-size:16pt; margin-bottom:10px;">Local Time</h2>
+<!-- Thank you to https://blog.shorouk.dev/ for code -->
+<!-- original : https://codepen.io/SeanNorton/pen/LWBXQL -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 
-  <p id="time-display" style="font-size:24pt; margin:10px 0;"></p>
+    <style>
 
-  <div style="margin-bottom:10px;">
-    <label for="timezone">Select Timezone:</label><br>
-    <select id="timezone" style="margin-top:6px; padding:4px;"></select>
-  </div>
+        /*CSS RESETS*/
 
-  <div>
-    <label for="format">Time Format:</label><br>
-    <select id="format" style="margin-top:6px; padding:4px;">
-      <option value="12">12-hour (AM/PM)</option>
-      <option value="24">24-hour</option>
-    </select>
+body{
+    background-color: #fff;
+    line-height: 1.6;
+
+}
+
+h1 {
+    margin-top: 0;
+}
+
+
+/*CSS START*/
+
+.full-table {
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+
+.table-cell {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.card {
+    padding: 10px 25px 10px 25px;
+    border-radius: 10px;
+    background: #DDD5D0;
+    color: #000;
+    display: inline-block;
+    box-shadow: 2px 2px 1px 0px #2c2f33;
+}
+
+.card:hover {
+    margin-top: 2px;
+    box-shadow: none;
+}
+
+.clock {
+    display: inline-block;
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+    font-size: 1.2em;
+    /* padding-left: 20px; */
+}
+
+.time {
+    display: inline-block;
+    min-width: 37px;
+}
+
+.colon {
+    font-size: 1.1em;
+    display: inline-block;
+}
+
+.date {
+    display: block;
+    min-width: 162px;
+    /* padding-right: 30px; */
+    /* border-right: 2px solid #295C7B; */
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.2em;
+}
+.greet{
+    
+    min-width: 162px;
+    /* padding-right: 30px; */
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.2em;
+}
+
+    </style>
+</head>
+<body>
+    <link href="https://fonts.googleapis.com/css?family=Lobster|Roboto:400,700" rel="stylesheet">
+
+<div class="full-table">
+  <div class="table-cell">
+    
+    <div class="card">
+        <div class="greet" id="greet"></div>
+      <div class="date" id="date"></div>
+      <div class="clock">
+        <div class="time" id="hour"></div>
+        <div class="colon">:</div>
+        <div class="time" id="min"></div>
+        <div class="colon">:</div>
+        <div class="time" id="sec"></div>
+      </div>
+    </div>
+    
   </div>
 </div>
 
 <script>
-  const timeEl = document.getElementById("time-display");
-  const tzSelect = document.getElementById("timezone");
-  const formatSelect = document.getElementById("format");
+    function date() {
+var today = new Date();
+document.getElementById('date').innerHTML = today.toDateString();
+}
 
-  const zones = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [
-    "UTC", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-    "Europe/London", "Europe/Paris", "Asia/Tokyo", "Asia/Dubai", "Australia/Sydney"
-  ];
 
-  zones.forEach(zone => {
-    const opt = document.createElement("option");
-    opt.value = zone;
-    opt.textContent = zone.replace("_", " ");
-    tzSelect.appendChild(opt);
-  });
+function clock() {
+var today = new Date();
+var hour = zeros(twelveHour(today.getHours()));
+var minutes = zeros(today.getMinutes());
+var seconds = zeros(today.getSeconds());
+if(today.getHours() >=12){
+    seconds+=" pm"
+}
+else{
+    seconds+=" am"
+}
+hrs = today.getHours();
+if (hrs < 12)
+        greet = 'Good Morning  ';
+    else if (hrs >= 12 && hrs <= 17)
+        greet = 'Good Afternoon ';
+    else if (hrs >= 17 && hrs <= 24)
+        greet = 'Good Evening  ';
+// console.log(today.toLocaleTimeString());
+document.getElementById('greet').innerHTML = greet;
+document.getElementById('hour').innerHTML = hour;
+document.getElementById('min').innerHTML = minutes;
+document.getElementById('sec').innerHTML = seconds;
+}
 
-  // Load saved settings
-  let selectedZone = localStorage.getItem("userTimezone") || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let hourFormat = localStorage.getItem("hourFormat") || "12";
+function twelveHour(hour) {
+if (hour > 12) {
+    return hour -= 12 
+} else if (hour === 0) {
+    return hour = 12;
+} else {
+    return hour
+}
+}
+// adds zero infront of single digit number
+function zeros(num) {
+if (num < 10) {
+    num = '0' + num
+};
+return num;
+}
 
-  tzSelect.value = selectedZone;
-  formatSelect.value = hourFormat;
+function dateTime() {
+date();
+clock();
+setTimeout(dateTime, 500);
+}
 
-  tzSelect.addEventListener("change", () => {
-    selectedZone = tzSelect.value;
-    localStorage.setItem("userTimezone", selectedZone);
-  });
-
-  formatSelect.addEventListener("change", () => {
-    hourFormat = formatSelect.value;
-    localStorage.setItem("hourFormat", hourFormat);
-  });
-
-  function updateClock() {
-    const now = new Date();
-    try {
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: selectedZone,
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: hourFormat === "12"
-      });
-      timeEl.textContent = formatter.format(now);
-    } catch {
-      timeEl.textContent = "Invalid Timezone";
-    }
-  }
-
-  updateClock();
-  setInterval(updateClock, 1000);
+dateTime()
+// END
 </script>
+
+</body>
+</html>
