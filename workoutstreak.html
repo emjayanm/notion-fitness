@@ -1,5 +1,5 @@
 <!-- ⭐ Gold Star Workout Streak Widget by Sarah at emjayanm.com-->
-<div id="widget" style="background:#ffffff; color:#000; padding:20px; font-family: Georgia; font-size:12pt; text-align:center; border-radius:12px; max-width:420px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+<div id="widget" style="background:#DDD5D0; color:#000; padding:20px; font-family: Georgia; font-size:12pt; text-align:center; border-radius:12px; max-width:420px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
   <h2 style="font-size:16pt; margin-bottom:10px;">⭐ Weekly Workout Tracker ⭐</h2>
 
   <div id="setup">
@@ -63,7 +63,7 @@
     if (!starGoal) return;
     setup.style.display = "none";
     tracker.style.display = "block";
-    goalSummary.textContent = `🎯 Goal: ${starGoal} workouts of ${durationEl.value} this week`;
+    goalSummary.textContent = `Goal: ${starGoal} workouts of ${durationEl.value} this week`;
 
     starsContainer.innerHTML = "";
     stars.forEach((filled, index) => {
