@@ -41,7 +41,7 @@
   box-shadow: 2px 2px 1px 0px var(--border-color);
   background-color: var(--bg-color);
   text-align: center;
-  font-size: 1.1em;
+  font-size: 1.5em;
   gap: 0.75em;
 }
 
@@ -110,7 +110,7 @@
       <label for="duration">Choose workout duration:</label><br>
       <select id="duration">
         <option>15 minutes</option>
-        <option selected>30 minutes</option>
+        <option>30 minutes</option>
         <option>45 minutes</option>
         <option>60 minutes</option>
       </select><br>
@@ -120,7 +120,7 @@
         <option>2</option>
         <option>3</option>
         <option>4</option>
-        <option selected>5</option>
+        <option>5</option>
         <option>6</option>
       </select><br>
 
@@ -186,6 +186,7 @@
       stars.forEach((filled, index) => {
         const star = document.createElement("span");
         star.textContent = filled ? "⭐" : "☆";
+        star.style.fontSize = "2.5em";
         star.style.cursor = filled ? "default" : "pointer";
         star.onclick = () => {
           if (!filled) {
