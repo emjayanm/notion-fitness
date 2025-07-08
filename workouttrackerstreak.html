@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Workout Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #DDD5D0;
+      --text-color: #000;
+      --border-color: #000;
+      --button-bg: #fff;
+    }
+
+    body.dark-mode {
+      --bg-color: #222;
+      --text-color: #fff;
+      --border-color: #fff;
+      --button-bg: #333;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      font-variant-caps: all-petite-caps;
+      font-family: monospace;
+      color: var(--text-color);
+    }
+
+    .widget {
+      padding: 1em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      max-width: 95%;
+      margin: 1em auto;
+      border: 3px solid var(--border-color);
+      border-radius: 5px;
+      box-shadow: 2px 2px 1px 0px var(--border-color);
+      background-color: var(--bg-color);
+      text-align: center;
+      font-size: 1.2em;
+    }
+
+    .widget h2 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .widget select,
+    .widget button {
+      font-size: 1em;
+      padding: 6px 12px;
+      margin: 6px 0;
+      font-family: inherit;
+      background: var(--button-bg);
+      border: 2px solid var(--border-color);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    #stars {
+      font-size: 2em;
+      margin: 10px 0;
+    }
+
+    #goalSummary,
+    #status,
+    #streakMessage,
+    #countdown,
+    #totalStreaks {
+      margin: 6px 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 1em;
+    }
+
+    @media screen and (max-width: 480px) {
+      .widget {
+        font-size: 1em;
+        padding: 0.75em;
+      }
+
+      .widget h2 {
+        font-size: 1.5em;
+      }
+
+      #stars {
+        font-size: 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget">
+    <h2>Weekly Workout Tracker</h2>
+
+    <div class="controls">
+      <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+    </div>
+
+    <div id="setup">
+      <label for="duration">Choose workout duration:</label><br>
+      <select id="duration">
+        <option>15 minutes</option>
+        <option selected>30 minutes</option>
+        <option>45 minutes</option>
+        <option>60 minutes</option>
+      </select><br>
+
+      <label for="goal">Choose days per week:</label><br>
+      <select id="goal">
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option selected>5</option>
+        <option>6</option>
+      </select><br>
+
+      <button onclick="saveGoal()">Set Goal</button>
+    </div>
+
+    <div id="tracker" style="display:none;">
+      <p id="goalSummary"></p>
+      <div id="stars"></div>
+      <p id="status"></p>
+      <p id="streakMessage"></p>
+      <p id="totalStreaks"></p>
+      <button onclick="manualReset()">🔁 Reset Progress</button>
+      <button onclick="fullReset()" style="background:#fdd;">⚠️ Full Reset</button>
+    </div>
+
+    <p id="countdown"></p>
+  </div>
+
+  <script>
+    const durationEl = document.getElementById("duration");
+    const goalEl = document.getElementById("goal");
+    const setup = document.getElementById("setup");
+    const tracker = document.getElementById("tracker");
+    const starsContainer = document.getElementById("stars");
+    const status = document.getElementById("status");
+    const goalSummary = document.getElementById("goalSummary");
+    const countdown = document.getElementById("countdown");
+    const streakMessage = document.getElementById("streakMessage");
+    const totalStreaksDisplay = document.getElementById("totalStreaks");
+
+    let starGoal = parseInt(localStorage.getItem("starGoal")) || null;
+    let streak = parseInt(localStorage.getItem("streak")) || 0;
+    let totalStreaks = parseInt(localStorage.getItem("totalStreaks")) || 0;
+    let stars = JSON.parse(localStorage.getItem("stars")) || [];
+    let resetTime = parseInt(localStorage.getItem("resetTime")) || getNextMonday();
+    let darkMode = localStorage.getItem("darkMode") === "true";
+
+    if (darkMode) document.body.classList.add("dark-mode");
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+      darkMode = !darkMode;
+      localStorage.setItem("darkMode", darkMode);
+    }
+
+    function saveGoal() {
+      starGoal = parseInt(goalEl.value);
+      stars = Array(starGoal).fill(false);
+      localStorage.setItem("starGoal", starGoal);
+      localStorage.setItem("stars", JSON.stringify(stars));
+      localStorage.setItem("resetTime", resetTime);
+      renderWidget();
+    }
+
+    function renderWidget() {
+      if (!starGoal) return;
+      setup.style.display = "none";
+      tracker.style.display = "block";
+      goalSummary.textContent = `Goal: ${starGoal} workouts of ${durationEl.value} this week`;
+
+      starsContainer.innerHTML = "";
+      stars.forEach((filled, index) => {
+        const star = document.createElement("span");
+        star.textContent = filled ? "⭐" : "☆";
+        star.style.cursor = filled ? "default" : "pointer";
+        star.onclick = () => {
+          if (!filled) {
+            stars[index] = true;
+            localStorage.setItem("stars", JSON.stringify(stars));
+            renderWidget();
+            checkCompletion();
+          }
+        };
+        starsContainer.appendChild(star);
+      });
+
+      const completed = stars.filter(Boolean).length;
+      const remaining = starGoal - completed;
+      status.textContent = completed >= starGoal
+        ? "🎉 Goal Complete! Amazing job!"
+        : `💪 ${remaining} more to go!`;
+
+      if (completed >= starGoal) {
+        streak++;
+        totalStreaks++;
+        localStorage.setItem("streak", streak);
+        localStorage.setItem("totalStreaks", totalStreaks);
+
+        if (streak >= 10) {
+          streakMessage.textContent = "🏅 10-week master streak!";
+        } else if (streak >= 5) {
+          streakMessage.textContent = "🏆 5-week streak — you’re on fire!";
+        } else if (streak >= 3) {
+          streakMessage.textContent = "🥉 3-week streak — keep going!";
+        } else {
+          streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
+        }
+
+        const confetti = document.createElement("div");
+        confetti.textContent = "🎉";
+        confetti.style.position = "fixed";
+        confetti.style.top = "50%";
+        confetti.style.left = "50%";
+        confetti.style.fontSize = "48px";
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2000);
+      } else {
+        streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
+      }
+
+      totalStreaksDisplay.textContent = `🏁 Total Completed Weeks: ${totalStreaks}`;
+    }
+
+    function manualReset() {
+      stars = Array(starGoal).fill(false);
+      localStorage.setItem("stars", JSON.stringify(stars));
+      setup.style.display = "none";
+      tracker.style.display = "block";
+      renderWidget();
+    }
+
+    function fullReset() {
+      localStorage.clear();
+      starGoal = null;
+      stars = [];
+      streak = 0;
+      totalStreaks = 0;
+      resetTime = getNextMonday();
+      location.reload();
+    }
+
+    function getNextMonday() {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = (8 - day) % 7 || 7;
+      now.setDate(now.getDate() + diff);
+      now.setHours(0, 0, 0, 0);
+      return now.getTime();
+    }
+
+    function checkReset() {
+      const now = new Date().getTime();
+      if (now >= resetTime) {
+        stars = Array(starGoal || 0).fill(false);
+        localStorage.setItem("stars", JSON.stringify(stars));
+        resetTime = getNextMonday();
+        localStorage.setItem("resetTime", resetTime);
+        renderWidget();
+      }
+    }
+
+    function renderCountdown() {
+      const now = new Date().getTime();
+      const distance = resetTime - now;
+      const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      countdown.textContent = `⏳ Resets in ${d}d ${h}h ${m}m`;
+    }
+
+    checkReset();
+    renderWidget();
+    renderCountdown();
+    setInterval(renderCountdown, 60000);
+  </script>
+</body>
+</html>
