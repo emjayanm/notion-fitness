@@ -212,29 +212,58 @@
         localStorage.setItem("streak", streak);
         localStorage.setItem("totalStreaks", totalStreaks);
 
-        if (streak >= 10) {
-          streakMessage.textContent = "🏅 10-week master streak!";
-        } else if (streak >= 5) {
-          streakMessage.textContent = "🏆 5-week streak — you’re on fire!";
-        } else if (streak >= 3) {
-          streakMessage.textContent = "🥉 3-week streak — keep going!";
-        } else {
-          streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
-        }
+        if (completed >= starGoal) {
+  streak++;
+  localStorage.setItem("streak", streak);
 
-        const confetti = document.createElement("div");
-        confetti.textContent = "🎉🎉🎉";
-        confetti.style.position = "fixed";
-        confetti.style.top = "50%";
-        confetti.style.left = "50%";
-        confetti.style.fontSize = "48px";
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 2000);
-      } else {
-        streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
-      }
+  switch (streak) {
+    case 1:
+      streakMessage.textContent = "✨ Week 1 — beautiful beginning!";
+      break;
+    case 2:
+      streakMessage.textContent = "🌟 Week 2 — keep up the momentum!";
+      break;
+    case 3:
+      streakMessage.textContent = "🥉 Week 3 — you're finding your rhythm!";
+      break;
+    case 4:
+      streakMessage.textContent = "💪 Week 4 — your dedication is showing!";
+      break;
+    case 5:
+      streakMessage.textContent = "🏆 Week 5 — halfway to 10!";
+      break;
+    case 6:
+      streakMessage.textContent = "🔥 Week 6 — staying strong!";
+      break;
+    case 7:
+      streakMessage.textContent = "🎯 Week 7 — you're in flow!";
+      break;
+    case 8:
+      streakMessage.textContent = "🌈 Week 8 — consistent & grounded!";
+      break;
+    case 9:
+      streakMessage.textContent = "🚀 Week 9 — almost at master streak!";
+      break;
+    case 10:
+      streakMessage.textContent = "🏅 Week 10 — master streak achieved!";
+      break;
+    default:
+      streakMessage.textContent = `🔥 Streak: ${streak} weeks strong!`;
+  }
 
-      totalStreaksDisplay.textContent = `🏁 Total Completed Weeks: ${totalStreaks}`;
+  // Confetti 🎉
+  const confetti = document.createElement("div");
+  confetti.textContent = "🎉🎉🎉";
+  confetti.style.position = "fixed";
+  confetti.style.top = "50%";
+  confetti.style.left = "50%";
+  confetti.style.fontSize = "48px";
+  document.body.appendChild(confetti);
+  setTimeout(() => confetti.remove(), 2000);
+} else {
+  streakMessage.textContent = `🔥 Streak: ${streak} week${streak > 1 ? "s" : ""}`;
+}
+  totalStreaksDisplay.textContent = `🏁 Total Completed Weeks: ${totalStreaks}`;
     }
 
     function manualReset() {
