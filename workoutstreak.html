@@ -292,7 +292,7 @@
         const readable = new Date(savedDate).toLocaleDateString(undefined, {
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
-        displayResetDate.textContent = `🔁 You plan to reset on: ${readable}`;
+        displayResetDate.textContent = `Last Workout Day This Week: ${readable}`;
       } else {
         displayResetDate.textContent = "";
       }
